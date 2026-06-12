@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Vinted Labels</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --border: #2a2a30;
+    --accent: #09d98c;
+    --accent-dim: rgba(9,217,140,0.12);
+    --text: #f0f0f0;
+    --muted: #6b6b7a;
+    --danger: #ff4d6d;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  header {
+    padding: 48px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  header h1 span { color: var(--accent); }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .dot.connected { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+  main { padding: 20px; }
+
+  /* AUTH SCREEN */
+  #auth-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    gap: 24px;
+    text-align: center;
+  }
+
+  .logo-icon {
+    width: 72px; height: 72px;
+    background: var(--accent-dim);
+    border: 1.5px solid var(--accent);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+  }
+
+  #auth-screen h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  #auth-screen p {
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 280px;
+    line-height: 1.6;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    max-width: 300px;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .btn-primary:active { opacity: 0.8; transform: scale(0.98); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 300px;
+    transition: border-color 0.2s;
+  }
+
+  .btn-secondary:active { border-color: var(--accent); }
+
+  /* CONFIG PANEL */
+  #config-panel {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .config-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .config-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+  }
+
+  .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .input-group label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+
+  .input-group input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .input-group input:focus { border-color: var(--accent); }
+  .input-group input::placeholder { color: var(--muted); }
+
+  .save-note {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+
+  /* MAIL LIST */
+  #app-screen { display: none; }
+
+  .section-title {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .refresh-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .refresh-btn:active { border-color: var(--accent); color: var(--accent); }
+
+  .mail-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mail-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 3px 0 0 3px;
+  }
+
+  .mail-card:active { border-color: var(--accent); transform: scale(0.99); }
+
+  .mail-card .article-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    padding-right: 60px;
+  }
+
+  .mail-card .mail-meta {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    gap: 12px;
+  }
+
+  .mail-card .badge {
+    position: absolute;
+    top: 14px; right: 14px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .icon { font-size: 40px; margin-bottom: 16px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+
+  /* LOADING */
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 48px;
+    width: 100%;
+    max-width: 480px;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .modal h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .modal .article-label {
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .label-preview {
+    background: #fff;
+    border-radius: 12px;
+    aspect-ratio: 6/4;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .label-preview canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .label-preview .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    color: #999;
+    font-size: 12px;
+  }
+
+  .label-preview .loading-overlay .spinner {
+    border-color: #ddd;
+    border-top-color: #09d98c;
+  }
+
+  .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+
+  .btn-save {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+  }
+
+  .btn-save:active { opacity: 0.8; }
+
+  .btn-close-modal {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 14px;
+    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--accent);
+    color: #000;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 200;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Vinted <span>Labels</span></h1>
+  <div class="status-bar">
+    <div class="dot" id="status-dot"></div>
+    <span id="status-text">Non connecté</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="logo-icon">📦</div>
+    <h2>Connexion Gmail</h2>
+    <p>Connecte ton compte Google pour récupérer automatiquement tes bordereaux Vinted.</p>
+    <button class="btn-primary" onclick="showConfig()">⚙️ Configurer les clés API</button>
+    <button class="btn-secondary" onclick="startOAuth()">Déjà configuré → Se connecter</button>
+  </div>
+
+  <!-- CONFIG PANEL -->
+  <div id="config-panel">
+    <div class="config-card">
+      <h3>CLÉS GOOGLE CLOUD</h3>
+      <div class="input-group">
+        <label>Client ID</label>
+        <input type="text" id="client-id" placeholder="xxxx.apps.googleusercontent.com">
+      </div>
+      <div class="input-group">
+        <label>Client Secret</label>
+        <input type="password" id="client-secret" placeholder="GOCSPX-...">
+      </div>
+      <p class="save-note">Ces clés sont sauvegardées uniquement sur ton appareil (localStorage).</p>
+    </div>
+    <div class="config-card">
+      <h3>PARAMÈTRES ÉTIQUETTE</h3>
+      <div class="input-group">
+        <label>Texte supplémentaire (optionnel)</label>
+        <input type="text" id="extra-text" placeholder="Ex: Fragile, Emballage soigné...">
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveConfig()">Sauvegarder & Se connecter</button>
+    <button class="btn-secondary" onclick="showAuth()">← Retour</button>
+  </div>
+
+  <!-- APP SCREEN -->
+  <div id="app-screen">
+    <div class="section-title">
+      <span id="mail-count">Bordereaux Vinted</span>
+      <button class="refresh-btn" onclick="loadEmails()">↻ Actualiser</button>
+    </div>
+    <div id="mail-list"></div>
+  </div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="modal-title">Bordereau</h2>
+    <div class="article-label" id="modal-article"></div>
+    <div class="label-preview" id="label-preview">
+      <div class="loading-overlay" id="preview-loading">
+        <div class="spinner"></div>
+        <span>Génération en cours...</span>
+      </div>
+      <canvas id="label-canvas"></canvas>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="saveToFiles()">📤 Partager / Imprimer</button>
+      <button class="btn-close-modal" onclick="closeModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly';
+const REDIRECT_URI = window.location.href.split('?')[0].split('#')[0];
+
+let accessToken = null;
+let currentMail = null;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.onload = () => {
+  // Handle OAuth callback
+  const hash = window.location.hash;
+  if (hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.substring(1));
+    accessToken = params.get('access_token');
+    localStorage.setItem('vinted_access_token', accessToken);
+    window.history.replaceState({}, '', window.location.pathname);
+    showApp();
+    loadEmails();
+    return;
+  }
+
+  // Check saved token
+  const saved = localStorage.getItem('vinted_access_token');
+  if (saved) {
+    accessToken = saved;
+    showApp();
+    loadEmails();
+  } else {
+    showAuth();
+  }
+};
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function showAuth() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('config-panel').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'none';
+  setStatus(false, 'Non connecté');
+}
+
+function showConfig() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('config-panel').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+  // Pre-fill
+  const id = localStorage.getItem('g_client_id') || '';
+  const sec = localStorage.getItem('g_client_secret') || '';
+  document.getElementById('client-id').value = id;
+  document.getElementById('client-secret').value = sec;
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('config-panel').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  setStatus(true, 'Gmail connecté');
+}
+
+function saveConfig() {
+  const id = document.getElementById('client-id').value.trim();
+  const sec = document.getElementById('client-secret').value.trim();
+  if (!id) { showToast('⚠️ Client ID manquant'); return; }
+  localStorage.setItem('g_client_id', id);
+  if (sec) localStorage.setItem('g_client_secret', sec);
+  startOAuth();
+}
+
+function startOAuth() {
+  const clientId = localStorage.getItem('g_client_id');
+  if (!clientId) { showConfig(); return; }
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'token',
+    scope: SCOPES,
+    prompt: 'select_account'
+  });
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+function setStatus(connected, text) {
+  document.getElementById('status-dot').className = 'dot' + (connected ? ' connected' : '');
+  document.getElementById('status-text').textContent = text;
+}
+
+// ─── GMAIL ───────────────────────────────────────────────────────────────────
+async function loadEmails() {
+  const list = document.getElementById('mail-list');
+  list.innerHTML = `<div class="loading"><div class="spinner"></div><span>Recherche des mails Vinted...</span></div>`;
+
+  try {
+    // Search for Vinted emails with PDF attachments
+    const query = encodeURIComponent('from:vinted has:attachment filename:pdf');
+    const res = await gmailFetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=20`);
+    const data = await res.json();
+
+    if (!data.messages || data.messages.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>Aucun bordereau Vinted trouvé.<br>Les nouveaux mails apparaîtront ici.</p></div>`;
+      document.getElementById('mail-count').textContent = 'Aucun bordereau';
+      return;
+    }
+
+    document.getElementById('mail-count').textContent = `${data.messages.length} bordereau(x)`;
+
+    // Fetch details for each message
+    const details = await Promise.all(
+      data.messages.slice(0, 15).map(m => fetchMailMeta(m.id))
+    );
+
+    list.innerHTML = '';
+    details.forEach(mail => {
+      if (!mail) return;
+      const card = document.createElement('div');
+      card.className = 'mail-card';
+      card.innerHTML = `
+        <div class="article-name">${escHtml(mail.article)}</div>
+        <div class="mail-meta">
+          <span>📅 ${mail.date}</span>
+          <span>📎 ${mail.attachCount} PDF</span>
+        </div>
+        <div class="badge">Bordereau</div>
+      `;
+      card.onclick = () => openMail(mail);
+      list.appendChild(card);
+    });
+
+  } catch (e) {
+    if (e.message === 'UNAUTHORIZED') {
+      localStorage.removeItem('vinted_access_token');
+      showAuth();
+      return;
+    }
+    list.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erreur : ${e.message}</p></div>`;
+  }
+}
+
+async function fetchMailMeta(id) {
+  try {
+    const res = await gmailFetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=Subject&metadataHeaders=Date`);
+    const data = await res.json();
+    const headers = data.payload.headers;
+    const subject = headers.find(h => h.name === 'Subject')?.value || '';
+    const dateRaw = headers.find(h => h.name === 'Date')?.value || '';
+    
+    // Extract article name from subject
+    let article = subject;
+    // Vinted subjects like "Ton bordereau d'envoi pour [article]"
+    const match = subject.match(/pour\s+(.+)/i) || subject.match(/:\s+(.+)/i);
+    if (match) article = match[1];
+
+    // Count PDF attachments
+    let attachCount = 0;
+    const countAttachments = (parts) => {
+      if (!parts) return;
+      parts.forEach(p => {
+        if (p.mimeType === 'application/pdf') attachCount++;
+        if (p.parts) countAttachments(p.parts);
+      });
+    };
+    countAttachments(data.payload.parts);
+
+    const date = new Date(dateRaw).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    return { id, article: article || 'Article Vinted', date, attachCount: attachCount || 1, raw: data };
+  } catch { return null; }
+}
+
+async function openMail(mail) {
+  currentMail = mail;
+  document.getElementById('modal-title').textContent = 'Génération étiquette';
+  document.getElementById('modal-article').textContent = mail.article;
+  document.getElementById('label-canvas').style.display = 'none';
+  document.getElementById('preview-loading').style.display = 'flex';
+  document.getElementById('modal').classList.add('open');
+
+  try {
+    // Fetch full message to get PDF attachment
+    const res = await gmailFetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${mail.id}?format=full`);
+    const data = await res.json();
+
+    // Find PDF attachment
+    let attachmentId = null;
+    const findPdf = (parts) => {
+      if (!parts) return;
+      for (const p of parts) {
+        if (p.mimeType === 'application/pdf' && p.body?.attachmentId) {
+          attachmentId = p.body.attachmentId;
+          return;
+        }
+        if (p.parts) findPdf(p.parts);
+      }
+    };
+    findPdf(data.payload.parts);
+
+    if (!attachmentId) {
+      throw new Error('PDF introuvable dans ce mail');
+    }
+
+    // Download attachment
+    const attRes = await gmailFetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${mail.id}/attachments/${attachmentId}`);
+    const attData = await attRes.json();
+    
+    // Decode base64url
+    const base64 = attData.data.replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+
+    // Render PDF to canvas using pdf.js
+    await renderPdfToLabel(blob, mail.article);
+
+  } catch (e) {
+    document.getElementById('preview-loading').innerHTML = `<span style="color:#ff4d6d;font-size:12px;text-align:center;padding:20px">⚠️ ${e.message}</span>`;
+  }
+}
+
+// ─── PDF RENDERING ────────────────────────────────────────────────────────────
+async function renderPdfToLabel(pdfBlob, articleName) {
+  if (!window.pdfjsLib) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const arrayBuffer = await pdfBlob.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const page = await pdf.getPage(1);
+
+  // Smart PDF rendering - handles all Vinted label types
+  const TARGET_W = 812;
+  const TARGET_H = 1218;
+
+  const offscreen = document.createElement('canvas');
+  offscreen.width = TARGET_W;
+  offscreen.height = TARGET_H;
+  const ctx = offscreen.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, TARGET_W, TARGET_H);
+
+  const vp = page.getViewport({ scale: 1 });
+  const ratio = vp.width / vp.height;
+
+  // Render at high resolution first
+  const highScale = 4.0;
+  const viewport = page.getViewport({ scale: highScale });
+  const temp = document.createElement('canvas');
+  temp.width = viewport.width;
+  temp.height = viewport.height;
+  const tCtx = temp.getContext('2d');
+  tCtx.fillStyle = '#ffffff';
+  tCtx.fillRect(0, 0, temp.width, temp.height);
+  await page.render({ canvasContext: tCtx, viewport }).promise;
+
+  let srcX = 0, srcY = 0, srcW = temp.width, srcH = temp.height;
+
+  // Sample pixels to detect label type
+  const sCanvas = document.createElement('canvas');
+  sCanvas.width = 20; sCanvas.height = 20;
+  const sCtx = sCanvas.getContext('2d');
+
+  // Check right side for InPost 2-col
+  sCtx.drawImage(temp, Math.floor(temp.width*0.55), 0, Math.floor(temp.width*0.4), Math.floor(temp.height*0.5), 0, 0, 20, 20);
+  const dR = sCtx.getImageData(0,0,20,20).data;
+  let darkR = 0; for(let i=0;i<dR.length;i+=4) if(dR[i]<80) darkR++;
+
+  // Check bottom for Mondial Relay rotated label
+  sCtx.drawImage(temp, 0, Math.floor(temp.height*0.70), temp.width, Math.floor(temp.height*0.15), 0, 0, 20, 20);
+  const dB = sCtx.getImageData(0,0,20,20).data;
+  let darkB = 0; for(let i=0;i<dB.length;i+=4) if(dB[i]<80) darkB++;
+
+  if (darkB > 8) {
+    // Mondial Relay BE: label at bottom of A4, rotated 90deg
+    // Extract bottom portion, then rotate 90deg clockwise
+    const bSrcY = Math.floor(temp.height * 0.63);
+    const bSrcH = Math.floor(temp.height * 0.37);
+    const bSrcW = temp.width;
+
+    // Create rotated canvas
+    const rotCanvas = document.createElement('canvas');
+    rotCanvas.width = TARGET_H;
+    rotCanvas.height = TARGET_W;
+    const rCtx = rotCanvas.getContext('2d');
+    rCtx.fillStyle = '#ffffff';
+    rCtx.fillRect(0, 0, rotCanvas.width, rotCanvas.height);
+    rCtx.save();
+    rCtx.translate(0, rotCanvas.height);
+    rCtx.rotate(-Math.PI / 2);
+    rCtx.drawImage(temp, 0, bSrcY, bSrcW, bSrcH, 0, 0, rotCanvas.height, rotCanvas.width);
+    rCtx.restore();
+    ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, 0, 0, TARGET_W, TARGET_H);
+    srcW = 0; // skip normal drawImage below
+  } else if (darkR > 4) {
+    // InPost 2-col: crop left 48%, top 58% = more zoom
+    srcW = Math.floor(temp.width * 0.48);
+    srcH = Math.floor(temp.height * 0.58);
+  } else {
+    // Vinted Go: label top-left ~44% x 48% = more zoom
+    srcW = Math.floor(temp.width * 0.44);
+    srcH = Math.floor(temp.height * 0.48);
+  }
+
+  // Draw cropped area stretched to fill entire canvas
+  if (srcW > 0) ctx.drawImage(temp, srcX, srcY, srcW, srcH, 0, 0, TARGET_W, TARGET_H);
+
+  // Write article name in Reference Client zone (~70% height)
+  const artH = 46;
+  const artY = Math.floor(TARGET_H * 0.70);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(8, artY, TARGET_W - 16, artH);
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  let text = articleName;
+  const maxW = TARGET_W - 30;
+  while (ctx.measureText(text).width > maxW && text.length > 10) {
+    text = text.slice(0, -4) + '...';
+  }
+  ctx.fillText(text, 14, artY + artH / 2);
+
+  // Show in UI canvas
+  const canvas = document.getElementById('label-canvas');
+  canvas.width = TARGET_W;
+  canvas.height = TARGET_H;
+  const finalCtx = canvas.getContext('2d');
+  finalCtx.drawImage(offscreen, 0, 0);
+
+  document.getElementById('preview-loading').style.display = 'none';
+  canvas.style.display = 'block';
+  currentMail._canvas = offscreen;
+}
+
+// ─── SAVE TO FILES ────────────────────────────────────────────────────────────
+async function saveToFiles() {
+  if (!currentMail?._canvas) { showToast('⚠️ Génère d\'abord l\'étiquette'); return; }
+  const canvas = currentMail._canvas;
+  const safeName = currentMail.article.replace(/[^a-zA-Z0-9\u00C0-\u017E ]/g, '').trim().slice(0, 40);
+  const fileName = `Bordereau_${safeName}.png`;
+  canvas.toBlob(async blob => {
+    if (navigator.share) {
+      try {
+        const file = new File([blob], fileName, { type: 'image/png' });
+        await navigator.share({ files: [file], title: fileName });
+        closeModal();
+        return;
+      } catch(e) { if (e.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.download = fileName;
+    a.href = url;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ Téléchargé !');
+    closeModal();
+  }, 'image/png');
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+async function gmailFetch(url) {
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if (res.status === 401) throw new Error('UNAUTHORIZED');
+  return res;
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
