@@ -793,21 +793,25 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, 0, 0, TARGET_W, TARGET_H);
     srcW = 0; // skip normal drawImage below
   } else if (darkR > 4) {
-    // InPost 2-col: crop left 48%, top 58% = more zoom
+    // InPost 2-col: crop left 48%, top 50%
     srcW = Math.floor(temp.width * 0.48);
-    srcH = Math.floor(temp.height * 0.58);
+    srcH = Math.floor(temp.height * 0.50);
   } else {
-    // Vinted Go: label top-left ~44% x 48% = more zoom
+    // Vinted Go: crop left 44% x 42%
     srcW = Math.floor(temp.width * 0.44);
-    srcH = Math.floor(temp.height * 0.48);
+    srcH = Math.floor(temp.height * 0.42);
   }
 
   // Draw cropped area stretched to fill entire canvas
   if (srcW > 0) ctx.drawImage(temp, srcX, srcY, srcW, srcH, 0, 0, TARGET_W, TARGET_H);
 
-  // Write article name in Reference Client zone (~70% height)
+  // Write article name - position depends on label type
   const artH = 46;
-  const artY = Math.floor(TARGET_H * 0.70);
+  // Vinted Go: text between QR code and tracking number (~80% height)
+  // InPost/MR: Reference Client zone (~70% height)
+  const artY = (darkB > 8 || darkR > 4) 
+    ? Math.floor(TARGET_H * 0.70) 
+    : Math.floor(TARGET_H * 0.80);
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(8, artY, TARGET_W - 16, artH);
   ctx.fillStyle = '#000000';
