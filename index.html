@@ -493,6 +493,7 @@
     <div class="modal-actions">
       <button class="btn-save" onclick="saveToFiles()">📤 Partager / Imprimer</button>
       <button class="btn-close-modal" onclick="closeModal()">Fermer</button>
+      <button class="btn-close-modal" onclick="toggleDebugGrid()" style="margin-top:8px;font-size:11px;">🔧 Grille debug (coordonnées)</button>
     </div>
   </div>
 </div>
@@ -793,13 +794,17 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, 0, 0, TARGET_W, TARGET_H);
     srcW = 0; // skip normal drawImage below
   } else if (darkR > 4) {
-    // InPost 2-col: crop left 48%, top 50%
-    srcW = Math.floor(temp.width * 0.48);
-    srcH = Math.floor(temp.height * 0.50);
+    // InPost 2-col: tight crop, ~2mm margin around the label
+    srcX = Math.floor(temp.width * 0.015);
+    srcY = Math.floor(temp.height * 0.015);
+    srcW = Math.floor(temp.width * 0.465);
+    srcH = Math.floor(temp.height * 0.49);
   } else {
-    // Vinted Go: crop left 44% x 42%
-    srcW = Math.floor(temp.width * 0.44);
-    srcH = Math.floor(temp.height * 0.42);
+    // Vinted Go: tight crop, ~2mm margin around the label
+    srcX = Math.floor(temp.width * 0.015);
+    srcY = Math.floor(temp.height * 0.015);
+    srcW = Math.floor(temp.width * 0.425);
+    srcH = Math.floor(temp.height * 0.41);
   }
 
   // Draw cropped area stretched to fill entire canvas
@@ -807,8 +812,6 @@ async function renderPdfToLabel(pdfBlob, articleName) {
 
   // Write article name - position depends on label type
   const artH = 46;
-  // Vinted Go: text between QR code and tracking number (~80% height)
-  // InPost/MR: Reference Client zone (~70% height)
   const artY = (darkB > 8 || darkR > 4) 
     ? Math.floor(TARGET_H * 0.70) 
     : Math.floor(TARGET_H * 0.80);
@@ -824,6 +827,26 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     text = text.slice(0, -4) + '...';
   }
   ctx.fillText(text, 14, artY + artH / 2);
+
+  // DEBUG GRID: shows coordinate grid in % for calibration
+  if (localStorage.getItem('vinted_debug_grid') === '1') {
+    ctx.strokeStyle = 'rgba(255,0,0,0.45)';
+    ctx.lineWidth = 1;
+    for (let p = 0; p <= 100; p += 5) {
+      const x = Math.round(TARGET_W * p / 100);
+      const y = Math.round(TARGET_H * p / 100);
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, TARGET_H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(TARGET_W, y); ctx.stroke();
+      if (p % 10 === 0) {
+        ctx.fillStyle = 'red';
+        ctx.font = '11px monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(p + '%', x + 2, 1);
+        ctx.fillText(p + '%', 1, y + 1);
+      }
+    }
+  }
 
   // Show in UI canvas
   const canvas = document.getElementById('label-canvas');
@@ -880,6 +903,12 @@ function loadScript(src) {
     s.onerror = reject;
     document.head.appendChild(s);
   });
+}
+
+function toggleDebugGrid() {
+  const current = localStorage.getItem('vinted_debug_grid') === '1';
+  localStorage.setItem('vinted_debug_grid', current ? '0' : '1');
+  showToast(current ? '🔧 Grille désactivée' : '🔧 Grille activée - régénère l\'étiquette');
 }
 
 function closeModal() {
