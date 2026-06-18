@@ -814,9 +814,9 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   const artH = 46;
   const artY = (darkB > 8 || darkR > 4) 
     ? Math.floor(TARGET_H * 0.70) 
-    : Math.floor(TARGET_H * 0.85);
+    : Math.floor(TARGET_H * 0.82);
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(8, artY, TARGET_W - 16, artH);
+  //ctx.fillRect(8, artY, TARGET_W - 16, artH);
   ctx.fillStyle = '#000000';
   ctx.font = 'bold 14px sans-serif';
   ctx.textAlign = 'left';
