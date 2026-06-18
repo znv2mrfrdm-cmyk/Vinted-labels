@@ -801,8 +801,8 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     srcH = Math.floor(temp.height * 0.49);
   } else {
     // Vinted Go: tight crop, ~2mm margin around the label
-    srcX = Math.floor(temp.width * 0.015);
-    srcY = Math.floor(temp.height * 0.015);
+    srcX = Math.floor(temp.width * 0.20);
+    srcY = Math.floor(temp.height * 0.20);
     srcW = Math.floor(temp.width * 0.425);
     srcH = Math.floor(temp.height * 0.60);
   }
