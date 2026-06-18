@@ -731,8 +731,8 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   const page = await pdf.getPage(1);
 
   // Smart PDF rendering - handles all Vinted label types
-  const TARGET_W = 812;
-  const TARGET_H = 1218;
+  const TARGET_W = 102;
+  const TARGET_H = 152;
 
   const offscreen = document.createElement('canvas');
   offscreen.width = TARGET_W;
@@ -803,8 +803,8 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     // Vinted Go: tight crop, ~2mm margin around the label
     srcX = Math.floor(temp.width * 0.015);
     srcY = Math.floor(temp.height * 0.015);
-    srcW = Math.floor(temp.width * 0.450);
-    srcH = Math.floor(temp.height * 0.60);
+    srcW = Math.floor(temp.width * 0.60);
+    srcH = Math.floor(temp.height * 0.800);
   }
 
   // Draw cropped area stretched to fill entire canvas
