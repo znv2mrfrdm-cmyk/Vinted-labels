@@ -814,7 +814,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   const artH = 46;
   const artY = (darkB > 8 || darkR > 4) 
     ? Math.floor(TARGET_H * 0.70) 
-    : Math.floor(TARGET_H * 0.80);
+    : Math.floor(TARGET_H * 0.85);
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(8, artY, TARGET_W - 16, artH);
   ctx.fillStyle = '#000000';
@@ -826,7 +826,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   while (ctx.measureText(text).width > maxW && text.length > 10) {
     text = text.slice(0, -4) + '...';
   }
-  ctx.fillText(text, 14, artY + artH / 2);
+  ctx.fillText(text, 18, artY + artH / 2);
 
   // DEBUG GRID: shows coordinate grid in % for calibration
   if (localStorage.getItem('vinted_debug_grid') === '1') {
