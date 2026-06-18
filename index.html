@@ -731,8 +731,8 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   const page = await pdf.getPage(1);
 
   // Smart PDF rendering - handles all Vinted label types
-  const TARGET_W = 102;
-  const TARGET_H = 152;
+  const TARGET_W = 600;
+  const TARGET_H = 900;
 
   const offscreen = document.createElement('canvas');
   offscreen.width = TARGET_W;
