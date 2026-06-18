@@ -804,7 +804,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     srcX = Math.floor(temp.width * 0.015);
     srcY = Math.floor(temp.height * 0.010);
     srcW = Math.floor(temp.width * 0.470);
-    srcH = Math.floor(temp.height * 0.50);
+    srcH = Math.floor(temp.height * 0.55);
   }
 
   // Draw cropped area stretched to fill entire canvas
@@ -813,7 +813,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   // Write article name - position depends on label type
   const artH = 46;
   const artY = (darkB > 8 || darkR > 4) 
-    ? Math.floor(TARGET_H * 0.90) 
+    ? Math.floor(TARGET_H * 0.75) 
     : Math.floor(TARGET_H * 0.82);
   ctx.fillStyle = '#ffffff';
   //ctx.fillRect(8, artY, TARGET_W - 16, artH);
