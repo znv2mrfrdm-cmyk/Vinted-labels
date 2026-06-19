@@ -732,6 +732,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   const textContent = await page.getTextContent();
   const pageText = textContent.items.map(item ==> item.str).join(' ');
   const isBelgique = pageText.includes('MR Belgique');
+  const isFranceMR = pageText.includes('FR /') && pageText.includes('Mondial Relay');
   
   // Smart PDF rendering - handles all Vinted label types
   const TARGET_W = 600;
@@ -776,7 +777,6 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   let darkB = 0; for(let i=0;i<dB.length;i+=4) if(dB[i]<80) darkB++;
 
   if (isBelgique) {
-    const isFranceMR = pageText.includes('FR /') && pageText.includes('Mondial Relay');
     // Mondial Relay BE: label at bottom of A4, rotated 90deg
     // Extract bottom portion, then rotate 90deg clockwise
     const bSrcY = Math.floor(temp.height * 0.63);
