@@ -771,11 +771,12 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   let darkR = 0; for(let i=0;i<dR.length;i+=4) if(dR[i]<80) darkR++;
 
   // Check bottom for Mondial Relay rotated label
-  sCtx.drawImage(temp, 0, Math.floor(temp.height*0.70), temp.width, Math.floor(temp.height*0.15), 0, 0, 20, 20);
+ sCtx.drawImage(temp, 0, Math.floor(temp.height*0.70), temp.width, Math.floor(temp.height*0.15), 0, 0, 20, 20);
   const dB = sCtx.getImageData(0,0,20,20).data;
   let darkB = 0; for(let i=0;i<dB.length;i+=4) if(dB[i]<80) darkB++;
 
-  if (darkB > 8) {
+  if (isBelgique) {
+    const isFranceMR = pageText.includes('FR /') && pageText.includes('Mondial Relay');
     // Mondial Relay BE: label at bottom of A4, rotated 90deg
     // Extract bottom portion, then rotate 90deg clockwise
     const bSrcY = Math.floor(temp.height * 0.63);
@@ -796,6 +797,11 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     rCtx.restore();
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, 0, 0, TARGET_W, TARGET_H);
     srcW = 0; // skip normal drawImage below
+  } else if (isFranceMR) {
+    srcX = Math.floor(temp.width * 0.015);
+    srcY = Math.floor(temp.height * 0.015);
+    srcW = Math.floor(temp.width * 0.50); 
+    srcH = Math.floor(temp.height * 0.97);
   } else if (darkR > 4) {
     // InPost 2-col: tight crop, ~2mm margin around the label
     srcX = Math.floor(temp.width * 0.015);
