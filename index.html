@@ -779,8 +779,8 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   if (isBelgique) {
     // Mondial Relay BE: label at bottom of A4, rotated 90deg
     // Extract bottom portion, then rotate 90deg clockwise
-    const bSrcY = Math.floor(temp.height * 0.63);
-    const bSrcH = Math.floor(temp.height * 0.37);
+    const bSrcY = Math.floor(temp.height * 0.75);
+    const bSrcH = Math.floor(temp.height * 0.25);
     const bSrcW = temp.width;
 
     // Create rotated canvas
