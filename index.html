@@ -493,6 +493,7 @@
     <div class="modal-actions">
       <button class="btn-save" onclick="saveToFiles()">📤 Partager / Imprimer</button>
       <button class="btn-close-modal" onclick="closeModal()">Fermer</button>
+      <button class="btn-close-modal" onclick="toggleDebugGrid()" style="margin-top:8px;font-size:11px;">🔧 Grille debug (coordonnées)</button>
     </div>
   </div>
 </div>
@@ -728,10 +729,14 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   const arrayBuffer = await pdfBlob.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const page = await pdf.getPage(1);
-
+  const textContent = await page.getTextContent();
+  const pageText = textContent.items.map(item => item.str).join(' ');
+  const isBelgique = pageText.includes('MR Belgique');
+  const isFranceMR = pageText.includes('FR /') && pageText.includes('Mondial Relay');
+  
   // Smart PDF rendering - handles all Vinted label types
-  const TARGET_W = 812;
-  const TARGET_H = 1218;
+  const TARGET_W = 600;
+  const TARGET_H = 900;
 
   const offscreen = document.createElement('canvas');
   offscreen.width = TARGET_W;
@@ -767,15 +772,15 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   let darkR = 0; for(let i=0;i<dR.length;i+=4) if(dR[i]<80) darkR++;
 
   // Check bottom for Mondial Relay rotated label
-  sCtx.drawImage(temp, 0, Math.floor(temp.height*0.70), temp.width, Math.floor(temp.height*0.15), 0, 0, 20, 20);
+ sCtx.drawImage(temp, 0, Math.floor(temp.height*0.70), temp.width, Math.floor(temp.height*0.15), 0, 0, 20, 20);
   const dB = sCtx.getImageData(0,0,20,20).data;
   let darkB = 0; for(let i=0;i<dB.length;i+=4) if(dB[i]<80) darkB++;
 
-  if (darkB > 8) {
+  if (isBelgique) {
     // Mondial Relay BE: label at bottom of A4, rotated 90deg
     // Extract bottom portion, then rotate 90deg clockwise
-    const bSrcY = Math.floor(temp.height * 0.63);
-    const bSrcH = Math.floor(temp.height * 0.37);
+    const bSrcY = Math.floor(temp.height * 0.75);
+    const bSrcH = Math.floor(temp.height * 0.25);
     const bSrcW = temp.width;
 
     // Create rotated canvas
@@ -792,14 +797,23 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     rCtx.restore();
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, 0, 0, TARGET_W, TARGET_H);
     srcW = 0; // skip normal drawImage below
+  } else if (isFranceMR) {
+    srcX = Math.floor(temp.width * 0.015);
+    srcY = Math.floor(temp.height * 0.015);
+    srcW = Math.floor(temp.width * 0.50); 
+    srcH = Math.floor(temp.height * 0.97);
   } else if (darkR > 4) {
-    // InPost 2-col: crop left 48%, top 50%
-    srcW = Math.floor(temp.width * 0.48);
-    srcH = Math.floor(temp.height * 0.50);
+    // InPost 2-col: tight crop, ~2mm margin around the label
+    srcX = Math.floor(temp.width * 0.015);
+    srcY = Math.floor(temp.height * 0.015);
+    srcW = Math.floor(temp.width * 0.50);
+    srcH = Math.floor(temp.height * 0.49);
   } else {
-    // Vinted Go: crop left 44% x 42%
-    srcW = Math.floor(temp.width * 0.44);
-    srcH = Math.floor(temp.height * 0.42);
+    // Vinted Go: tight crop, ~2mm margin around the label
+    srcX = Math.floor(temp.width * 0.015);
+    srcY = Math.floor(temp.height * 0.010);
+    srcW = Math.floor(temp.width * 0.470);
+    srcH = Math.floor(temp.height * 0.55);
   }
 
   // Draw cropped area stretched to fill entire canvas
@@ -807,15 +821,13 @@ async function renderPdfToLabel(pdfBlob, articleName) {
 
   // Write article name - position depends on label type
   const artH = 46;
-  // Vinted Go: text between QR code and tracking number (~80% height)
-  // InPost/MR: Reference Client zone (~70% height)
   const artY = (darkB > 8 || darkR > 4) 
-    ? Math.floor(TARGET_H * 0.70) 
-    : Math.floor(TARGET_H * 0.80);
+    ? Math.floor(TARGET_H * 0.75) 
+    : Math.floor(TARGET_H * 0.82);
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(8, artY, TARGET_W - 16, artH);
+  //ctx.fillRect(8, artY, TARGET_W - 16, artH);
   ctx.fillStyle = '#000000';
-  ctx.font = 'bold 18px sans-serif';
+  ctx.font = 'bold 14px sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   let text = articleName;
@@ -823,7 +835,27 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   while (ctx.measureText(text).width > maxW && text.length > 10) {
     text = text.slice(0, -4) + '...';
   }
-  ctx.fillText(text, 14, artY + artH / 2);
+  ctx.fillText(text, 18, artY + artH / 2);
+
+  // DEBUG GRID: shows coordinate grid in % for calibration
+  if (localStorage.getItem('vinted_debug_grid') === '1') {
+    ctx.strokeStyle = 'rgba(255,0,0,0.45)';
+    ctx.lineWidth = 1;
+    for (let p = 0; p <= 100; p += 5) {
+      const x = Math.round(TARGET_W * p / 100);
+      const y = Math.round(TARGET_H * p / 100);
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, TARGET_H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(TARGET_W, y); ctx.stroke();
+      if (p % 10 === 0) {
+        ctx.fillStyle = 'red';
+        ctx.font = '11px monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(p + '%', x + 2, 1);
+        ctx.fillText(p + '%', 1, y + 1);
+      }
+    }
+  }
 
   // Show in UI canvas
   const canvas = document.getElementById('label-canvas');
@@ -839,12 +871,13 @@ async function renderPdfToLabel(pdfBlob, articleName) {
 
 // ─── SAVE TO FILES ────────────────────────────────────────────────────────────
 async function saveToFiles() {
+    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
   if (!currentMail?._canvas) { showToast('⚠️ Génère d\'abord l\'étiquette'); return; }
   const canvas = currentMail._canvas;
   const safeName = currentMail.article.replace(/[^a-zA-Z0-9\u00C0-\u017E ]/g, '').trim().slice(0, 40);
   const fileName = `Bordereau_${safeName}.png`;
   canvas.toBlob(async blob => {
-    if (navigator.share) {
+    if ( isMobile && navigator.share) {
       try {
         const file = new File([blob], fileName, { type: 'image/png' });
         await navigator.share({ files: [file], title: fileName });
@@ -852,14 +885,61 @@ async function saveToFiles() {
         return;
       } catch(e) { if (e.name === 'AbortError') return; }
     }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.download = fileName;
-    a.href = url;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('✅ Téléchargé !');
-    closeModal();
+   if (isMobile) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.download = fileName;
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('✅ Téléchargé !');
+      closeModal();
+    } else {
+      const url = URL.createObjectURL(blob);
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${fileName}</title>
+          <style>
+            @page {
+              size: 100mm 150mm;
+              margin: 0;
+            }
+            html, body {
+              margin: 0;
+              padding: 0;
+              width: 100mm;
+              height: 150mm;
+            }
+            img {
+              display: block;
+              width: 100mm;
+              height: 150mm;
+              object-fit: contain;
+            }
+            @media print {
+              html, body {
+                width: 100mm;
+                height: 150mm;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${url}" alt="${fileName}">
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      const img = printWindow.document.querySelector('img');
+      img.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+      };
+    }
   }, 'image/png');
 }
 
@@ -880,6 +960,12 @@ function loadScript(src) {
     s.onerror = reject;
     document.head.appendChild(s);
   });
+}
+
+function toggleDebugGrid() {
+  const current = localStorage.getItem('vinted_debug_grid') === '1';
+  localStorage.setItem('vinted_debug_grid', current ? '0' : '1');
+  showToast(current ? '🔧 Grille désactivée' : '🔧 Grille activée - régénère l\'étiquette');
 }
 
 function closeModal() {
