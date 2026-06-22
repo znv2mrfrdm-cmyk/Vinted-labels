@@ -762,6 +762,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   await page.render({ canvasContext: tCtx, viewport }).promise;
 
   let srcX = 0, srcY = 0, srcW = temp.width, srcH = temp.height;
+  let belgiqueContentBottom = null;
 
   // Sample pixels to detect label type
   const sCanvas = document.createElement('canvas');
@@ -807,6 +808,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const offX = (TARGET_W - drawW) / 2;
     const offY = (TARGET_H - drawH) / 2;
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
+    belgiqueContentBottom = offY + drawH;
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
     srcX = Math.floor(temp.width * 0.015);
@@ -832,9 +834,11 @@ async function renderPdfToLabel(pdfBlob, articleName) {
 
   // Write article name - position depends on label type
   const artH = 46;
-  const artY = (darkB > 8 || darkR > 4) 
-    ? Math.floor(TARGET_H * 0.90) 
-    : Math.floor(TARGET_H * 0.75);
+  const artY = belgiqueContentBottom !== null
+    ? Math.min(Math.floor(belgiqueContentBottom) + 10, TARGET_H - artH - 8)
+    : (darkB > 8 || darkR > 4)
+      ? Math.floor(TARGET_H * 0.90)
+      : Math.floor(TARGET_H * 0.75);
   ctx.fillStyle = '#ffffff';
   //ctx.fillRect(8, artY, TARGET_W - 16, artH);
   ctx.fillStyle = '#000000';
