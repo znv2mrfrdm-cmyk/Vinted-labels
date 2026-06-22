@@ -767,6 +767,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   let belgiqueTextX = null;
   let belgiqueMaxW = null;
   let belgiqueClip = null;
+  let belgiqueCenterX = null;
 
   // Sample pixels to detect label type
   const sCanvas = document.createElement('canvas');
@@ -816,6 +817,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     belgiqueTextX = offX + 16;
     belgiqueMaxW = drawW - 32;
     belgiqueClip = { x: offX, y: offY, w: drawW, h: drawH };
+    belgiqueCenterX = offX + drawW / 2;
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
     srcX = Math.floor(temp.width * 0.015);
@@ -900,13 +902,15 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     topY = Math.max(topY, 8);
 
     ctx.textBaseline = 'top';
+    ctx.textAlign = 'center';
     ctx.save();
     if (belgiqueClip) {
       ctx.beginPath();
       ctx.rect(belgiqueClip.x, belgiqueClip.y, belgiqueClip.w, belgiqueClip.h);
       ctx.clip();
     }
-    lines.forEach((line, i) => ctx.fillText(line, textX, topY + i * lineHeight));
+    const centerX = belgiqueCenterX !== null ? belgiqueCenterX : textX;
+    lines.forEach((line, i) => ctx.fillText(line, centerX, topY + i * lineHeight));
     ctx.restore();
   } else {
     ctx.textBaseline = 'middle';
