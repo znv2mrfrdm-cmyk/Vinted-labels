@@ -815,10 +815,10 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
     // Article name sits between the Shipment table (~68%) and the
     // "Customer Reference / Order Reference" line (~76%) on the actual label.
-    belgiqueContentBottom = TARGET_H * 0.72;
+    belgiqueContentBottom = TARGET_H * 0.74;
     belgiqueTextX = offX + 16;
-    belgiqueMaxW = drawW - 32;
-    belgiqueClip = { x: offX, y: offY, w: drawW, h: drawH };
+    belgiqueMaxW = TARGET_W * 0.80;
+    belgiqueClip = { x: 0, y: 0, w: TARGET_W, h: TARGET_H };
     belgiqueCenterX = TARGET_W * 0.50;
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
@@ -887,7 +887,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     }
     pushLine(cur);
 
-    const maxLines = 3;
+    const maxLines = 2;
     if (lines.length > maxLines) {
       lines = lines.slice(0, maxLines);
       let last = lines[maxLines - 1];
