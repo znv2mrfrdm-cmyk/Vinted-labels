@@ -819,7 +819,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     belgiqueTextX = offX + 16;
     belgiqueMaxW = TARGET_W * 0.80;
     belgiqueClip = { x: 0, y: 0, w: TARGET_W, h: TARGET_H };
-    belgiqueCenterX = TARGET_W * 0.50;
+    belgiqueCenterX = TARGET_W * 0.50 - 8;
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
     srcX = Math.floor(temp.width * 0.015);
