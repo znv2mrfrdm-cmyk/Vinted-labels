@@ -811,7 +811,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const offX = (TARGET_W - drawW) / 2;
     const offY = (TARGET_H - drawH) / 2;
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
-    belgiqueContentBottom = offY + drawH * 0.70;
+    belgiqueContentBottom = offY + drawH * 0.745;
     belgiqueTextX = offX + 12;
     belgiqueMaxW = drawW - 24;
     srcW = 0; // skip normal drawImage below
@@ -849,14 +849,51 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   ctx.fillStyle = '#000000';
   ctx.font = 'bold 14px sans-serif';
   ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  let text = articleName;
   const textX = belgiqueTextX !== null ? belgiqueTextX : 18;
   const maxW = belgiqueMaxW !== null ? belgiqueMaxW : TARGET_W - 30;
-  while (ctx.measureText(text).width > maxW && text.length > 10) {
-    text = text.slice(0, -4) + '...';
+
+  if (belgiqueMaxW !== null) {
+    // MR Belgique: wrap onto multiple lines instead of overflowing the label width
+    const words = articleName.split(/\s+/);
+    let lines = [];
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? cur + ' ' + w : w;
+      if (cur && ctx.measureText(test).width > maxW) {
+        lines.push(cur);
+        cur = w;
+      } else {
+        cur = test;
+      }
+    }
+    if (cur) lines.push(cur);
+
+    const maxLines = 3;
+    if (lines.length > maxLines) {
+      lines = lines.slice(0, maxLines);
+      let last = lines[maxLines - 1];
+      while (ctx.measureText(last + '...').width > maxW && last.length > 4) {
+        last = last.slice(0, -1);
+      }
+      lines[maxLines - 1] = last + '...';
+    }
+
+    const lineHeight = 17;
+    const blockH = lines.length * lineHeight;
+    let topY = Math.floor(belgiqueContentBottom) - blockH / 2;
+    topY = Math.min(topY, TARGET_H - blockH - 8);
+    topY = Math.max(topY, 8);
+
+    ctx.textBaseline = 'top';
+    lines.forEach((line, i) => ctx.fillText(line, textX, topY + i * lineHeight));
+  } else {
+    ctx.textBaseline = 'middle';
+    let text = articleName;
+    while (ctx.measureText(text).width > maxW && text.length > 10) {
+      text = text.slice(0, -4) + '...';
+    }
+    ctx.fillText(text, textX, artY + artH / 2);
   }
-  ctx.fillText(text, textX, artY + artH / 2);
 
   // DEBUG GRID: shows coordinate grid in % for calibration
   if (localStorage.getItem('vinted_debug_grid') === '1') {
