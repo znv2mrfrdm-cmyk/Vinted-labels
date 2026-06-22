@@ -864,21 +864,23 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const words = articleName.split(/\s+/);
     let lines = [];
     let cur = '';
+    // Safety margin so borderline words wrap reliably instead of clipping/overflowing
+    const wrapMaxW = maxW - 30;
     const pushLine = (l) => { if (l) lines.push(l); };
     for (let w of words) {
-      // Break up single words that alone exceed maxW (no spaces to wrap on)
-      while (ctx.measureText(w).width > maxW && w.length > 1) {
+      // Break up single words that alone exceed wrapMaxW (no spaces to wrap on)
+      while (ctx.measureText(w).width > wrapMaxW && w.length > 1) {
         let lo = 1, hi = w.length;
         while (lo < hi) {
           const mid = Math.ceil((lo + hi) / 2);
-          if (ctx.measureText(w.slice(0, mid)).width <= maxW) lo = mid; else hi = mid - 1;
+          if (ctx.measureText(w.slice(0, mid)).width <= wrapMaxW) lo = mid; else hi = mid - 1;
         }
         pushLine(cur); cur = '';
         lines.push(w.slice(0, lo));
         w = w.slice(lo);
       }
       const test = cur ? cur + ' ' + w : w;
-      if (cur && ctx.measureText(test).width > maxW) {
+      if (cur && ctx.measureText(test).width > wrapMaxW) {
         lines.push(cur);
         cur = w;
       } else {
@@ -891,7 +893,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     if (lines.length > maxLines) {
       lines = lines.slice(0, maxLines);
       let last = lines[maxLines - 1];
-      while (ctx.measureText(last + '...').width > maxW && last.length > 4) {
+      while (ctx.measureText(last + '...').width > wrapMaxW && last.length > 4) {
         last = last.slice(0, -1);
       }
       lines[maxLines - 1] = last + '...';
