@@ -809,7 +809,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const offX = (TARGET_W - drawW) / 2;
     const offY = (TARGET_H - drawH) / 2;
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
-    belgiqueContentBottom = offY + drawH * 0.90;
+    belgiqueContentBottom = offY + drawH * 0.78;
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
     srcX = Math.floor(temp.width * 0.015);
