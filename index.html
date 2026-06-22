@@ -811,7 +811,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const offX = (TARGET_W - drawW) / 2;
     const offY = (TARGET_H - drawH) / 2;
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
-    belgiqueContentBottom = offY + drawH * 0.84;
+    belgiqueContentBottom = offY + drawH * 0.80;
     belgiqueTextX = offX + 16;
     belgiqueMaxW = drawW - 32;
     srcW = 0; // skip normal drawImage below
@@ -858,7 +858,19 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const words = articleName.split(/\s+/);
     let lines = [];
     let cur = '';
-    for (const w of words) {
+    const pushLine = (l) => { if (l) lines.push(l); };
+    for (let w of words) {
+      // Break up single words that alone exceed maxW (no spaces to wrap on)
+      while (ctx.measureText(w).width > maxW && w.length > 1) {
+        let lo = 1, hi = w.length;
+        while (lo < hi) {
+          const mid = Math.ceil((lo + hi) / 2);
+          if (ctx.measureText(w.slice(0, mid)).width <= maxW) lo = mid; else hi = mid - 1;
+        }
+        pushLine(cur); cur = '';
+        lines.push(w.slice(0, lo));
+        w = w.slice(lo);
+      }
       const test = cur ? cur + ' ' + w : w;
       if (cur && ctx.measureText(test).width > maxW) {
         lines.push(cur);
@@ -867,7 +879,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
         cur = test;
       }
     }
-    if (cur) lines.push(cur);
+    pushLine(cur);
 
     const maxLines = 3;
     if (lines.length > maxLines) {
