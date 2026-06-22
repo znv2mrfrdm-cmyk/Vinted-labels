@@ -811,9 +811,9 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const offX = (TARGET_W - drawW) / 2;
     const offY = (TARGET_H - drawH) / 2;
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
-    belgiqueContentBottom = offY + drawH * 0.745;
-    belgiqueTextX = offX + 12;
-    belgiqueMaxW = drawW - 24;
+    belgiqueContentBottom = offY + drawH * 0.84;
+    belgiqueTextX = offX + 16;
+    belgiqueMaxW = drawW - 32;
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
     srcX = Math.floor(temp.width * 0.015);
@@ -853,7 +853,8 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   const maxW = belgiqueMaxW !== null ? belgiqueMaxW : TARGET_W - 30;
 
   if (belgiqueMaxW !== null) {
-    // MR Belgique: wrap onto multiple lines instead of overflowing the label width
+    // MR Belgique: smaller font, wrap onto multiple lines, stay within label width
+    ctx.font = 'bold 12px sans-serif';
     const words = articleName.split(/\s+/);
     let lines = [];
     let cur = '';
@@ -878,7 +879,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
       lines[maxLines - 1] = last + '...';
     }
 
-    const lineHeight = 17;
+    const lineHeight = 15;
     const blockH = lines.length * lineHeight;
     let topY = Math.floor(belgiqueContentBottom) - blockH / 2;
     topY = Math.min(topY, TARGET_H - blockH - 8);
