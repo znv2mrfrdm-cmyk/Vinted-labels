@@ -808,7 +808,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const offX = (TARGET_W - drawW) / 2;
     const offY = (TARGET_H - drawH) / 2;
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
-    belgiqueContentBottom = offY + drawH;
+    belgiqueContentBottom = offY + drawH * 0.90;
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
     srcX = Math.floor(temp.width * 0.015);
@@ -835,7 +835,7 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   // Write article name - position depends on label type
   const artH = 46;
   const artY = belgiqueContentBottom !== null
-    ? Math.min(Math.floor(belgiqueContentBottom) + 10, TARGET_H - artH - 8)
+    ? Math.min(Math.floor(belgiqueContentBottom), TARGET_H - artH - 8)
     : (darkB > 8 || darkR > 4)
       ? Math.floor(TARGET_H * 0.90)
       : Math.floor(TARGET_H * 0.75);
