@@ -764,6 +764,8 @@ async function renderPdfToLabel(pdfBlob, articleName) {
 
   let srcX = 0, srcY = 0, srcW = temp.width, srcH = temp.height;
   let belgiqueContentBottom = null;
+  let belgiqueTextX = null;
+  let belgiqueMaxW = null;
 
   // Sample pixels to detect label type
   const sCanvas = document.createElement('canvas');
@@ -809,7 +811,9 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const offX = (TARGET_W - drawW) / 2;
     const offY = (TARGET_H - drawH) / 2;
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
-    belgiqueContentBottom = offY + drawH * 0.78;
+    belgiqueContentBottom = offY + drawH * 0.70;
+    belgiqueTextX = offX + 12;
+    belgiqueMaxW = drawW - 24;
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
     srcX = Math.floor(temp.width * 0.015);
@@ -847,11 +851,12 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   let text = articleName;
-  const maxW = TARGET_W - 30;
+  const textX = belgiqueTextX !== null ? belgiqueTextX : 18;
+  const maxW = belgiqueMaxW !== null ? belgiqueMaxW : TARGET_W - 30;
   while (ctx.measureText(text).width > maxW && text.length > 10) {
     text = text.slice(0, -4) + '...';
   }
-  ctx.fillText(text, 18, artY + artH / 2);
+  ctx.fillText(text, textX, artY + artH / 2);
 
   // DEBUG GRID: shows coordinate grid in % for calibration
   if (localStorage.getItem('vinted_debug_grid') === '1') {
