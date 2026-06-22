@@ -813,11 +813,13 @@ async function renderPdfToLabel(pdfBlob, articleName) {
     const offX = (TARGET_W - drawW) / 2;
     const offY = (TARGET_H - drawH) / 2;
     ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
-    belgiqueContentBottom = offY + drawH * 0.80;
+    // Article name sits between the Shipment table (~68%) and the
+    // "Customer Reference / Order Reference" line (~76%) on the actual label.
+    belgiqueContentBottom = TARGET_H * 0.72;
     belgiqueTextX = offX + 16;
     belgiqueMaxW = drawW - 32;
     belgiqueClip = { x: offX, y: offY, w: drawW, h: drawH };
-    belgiqueCenterX = offX + drawW / 2;
+    belgiqueCenterX = TARGET_W * 0.50;
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
     srcX = Math.floor(temp.width * 0.015);
