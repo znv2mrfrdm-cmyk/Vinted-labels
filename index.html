@@ -779,25 +779,34 @@ async function renderPdfToLabel(pdfBlob, articleName) {
   let darkB = 0; for(let i=0;i<dB.length;i+=4) if(dB[i]<80) darkB++;
 
   if (isBelgique) {
-    // Mondial Relay BE: label at bottom of A4, rotated 90deg
-    // Extract bottom portion, then rotate 90deg clockwise
-    const bSrcY = Math.floor(temp.height * 0.75);
-    const bSrcH = Math.floor(temp.height * 0.25);
+    // Mondial Relay BE: label in lower portion of A4, rotated 90deg.
+    // Crop a generous strip (more height than before, so nothing above the
+    // old 75% line gets lost) and rotate it 1:1 (no stretch) to avoid distortion.
+    const bSrcX = 0;
     const bSrcW = temp.width;
+    const bSrcY = Math.floor(temp.height * 0.60);
+    const bSrcH = Math.floor(temp.height * 0.40);
 
-    // Create rotated canvas
+    // Rotate 90deg counter-clockwise at native scale (no aspect distortion)
     const rotCanvas = document.createElement('canvas');
-    rotCanvas.width = TARGET_H;
-    rotCanvas.height = TARGET_W;
+    rotCanvas.width = bSrcH;
+    rotCanvas.height = bSrcW;
     const rCtx = rotCanvas.getContext('2d');
     rCtx.fillStyle = '#ffffff';
     rCtx.fillRect(0, 0, rotCanvas.width, rotCanvas.height);
     rCtx.save();
-    rCtx.translate(0, rotCanvas.height);
+    rCtx.translate(0, bSrcW);
     rCtx.rotate(-Math.PI / 2);
-    rCtx.drawImage(temp, 0, bSrcY, bSrcW, bSrcH, 0, 0, rotCanvas.height, rotCanvas.width);
+    rCtx.drawImage(temp, bSrcX, bSrcY, bSrcW, bSrcH, 0, 0, bSrcW, bSrcH);
     rCtx.restore();
-    ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, 0, 0, TARGET_W, TARGET_H);
+
+    // Fit the rotated label into the target canvas preserving aspect ratio, centered
+    const scale = Math.min(TARGET_W / rotCanvas.width, TARGET_H / rotCanvas.height);
+    const drawW = rotCanvas.width * scale;
+    const drawH = rotCanvas.height * scale;
+    const offX = (TARGET_W - drawW) / 2;
+    const offY = (TARGET_H - drawH) / 2;
+    ctx.drawImage(rotCanvas, 0, 0, rotCanvas.width, rotCanvas.height, offX, offY, drawW, drawH);
     srcW = 0; // skip normal drawImage below
   } else if (isFranceMR) {
     srcX = Math.floor(temp.width * 0.015);
